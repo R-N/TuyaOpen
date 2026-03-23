@@ -19,7 +19,7 @@ MIRROR_LIST = [
     "tuya/TuyaOpen-T3",
     "tuya/TuyaOpen-ubuntu",
     "tuya/TuyaOpen-T5AI",
-    "tuya/TuyaOpen-esp32",
+    "R-N/TuyaOpen-esp32",
     "tuya/TuyaOpen-ln882h",
     "tuya/TuyaOpen-bk7231x",
     "tuya/arduino-tuyaopen",

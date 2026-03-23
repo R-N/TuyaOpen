@@ -20,7 +20,7 @@ platforms:
   commit: 0353cd0a2eeda903738f5daa74384affaeb9da65
 
 - name: ESP32
-  repo: https://github.com/tuya/TuyaOpen-esp32
+  repo: https://github.com/R-N/TuyaOpen-esp32
   branch: master
   commit: f5ce809e89f5f8ba61758e2675fd31fa6d474737
 
