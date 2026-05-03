@@ -203,7 +203,7 @@ static int activate_response_parse(atop_base_response_t *response)
     // activate info save
     char *result_string = cJSON_PrintUnformatted(result_root);
     const char *activate_data_key = client->config.storage_namespace;
-    PR_DEBUG("result len %d :%s", (int)strlen(result_string), result_string);
+    // PR_DEBUG("result len %d :%s", (int)strlen(result_string), result_string);
     ret = tal_kv_set(activate_data_key, (const uint8_t *)result_string, strlen(result_string));
     cJSON_free(result_string);
     if (ret != OPRT_OK) {
@@ -255,6 +255,9 @@ static int client_activate_process(tuya_iot_client_t *client, const char *token)
         return rt;
     }
 
+    /* timestamp sync */
+    tal_time_set_posix(response.t, 1);
+
     /* Send timestamp sync event*/
     client->event.id = TUYA_EVENT_TIMESTAMP_SYNC;
     client->event.type = TUYA_DATE_TYPE_INTEGER;
@@ -266,6 +269,9 @@ static int client_activate_process(tuya_iot_client_t *client, const char *token)
 
     /* relese response object */
     atop_base_response_free(&response);
+
+    /* Send timestamp sync event*/
+    tal_event_publish(EVENT_TIME_SYNC, (void *)client);
 
     if (OPRT_OK != rt) {
         PR_ERR("activate_response_parse error:%d", rt);
@@ -322,6 +328,7 @@ static void mqtt_service_reset_cmd_on(tuya_protocol_event_t *ev)
 
 static void matop_upgrade_info_on(atop_base_response_t *response, void *user_data)
 {
+    int rt = OPRT_OK;
     tuya_iot_client_t *client = (tuya_iot_client_t *)user_data;
 
     /* response error, abort upgrade */
@@ -329,11 +336,17 @@ static void matop_upgrade_info_on(atop_base_response_t *response, void *user_dat
         return;
     }
 
+    /* timestamp sync */
+    tal_time_set_posix(response->t, 1);
+
     /* Send timestamp sync event*/
     client->event.id = TUYA_EVENT_TIMESTAMP_SYNC;
     client->event.type = TUYA_DATE_TYPE_INTEGER;
     client->event.value.asInteger = response->t;
     iot_dispatch_event(client);
+
+    /* Send timestamp sync event*/
+    tal_event_publish(EVENT_TIME_SYNC, (void *)client);
 
     /* Param verify */
     if (response->result == NULL) {
@@ -346,7 +359,6 @@ static void matop_upgrade_info_on(atop_base_response_t *response, void *user_dat
     client->event.value.asJSON = response->result;
     iot_dispatch_event(client);
 
-    int rt = OPRT_OK;
     TUYA_CALL_ERR_LOG(tuya_ota_start(response->result));
 }
 
@@ -404,6 +416,9 @@ static void mqtt_client_connected_on(void *context, void *user_data)
     client->event.id = TUYA_EVENT_MQTT_CONNECTED;
     client->event.type = TUYA_DATE_TYPE_UNDEFINED;
     iot_dispatch_event(client);
+
+    /* Send MQTT connected event*/
+    tal_event_publish(EVENT_MQTT_CONNECTED, (void *)client);
 }
 
 static void mqtt_client_disconnect_on(void *context, void *user_data)
@@ -417,6 +432,9 @@ static void mqtt_client_disconnect_on(void *context, void *user_data)
     client->event.id = TUYA_EVENT_MQTT_DISCONNECT;
     client->event.type = TUYA_DATE_TYPE_UNDEFINED;
     iot_dispatch_event(client);
+
+    /* Send MQTT disconnected event*/
+    tal_event_publish(EVENT_MQTT_DISCONNECTED, (void *)client);
 }
 
 static void mqtt_client_unbind_on(void *context, void *user_data)
@@ -510,7 +528,7 @@ static int run_state_mqtt_connect_start(tuya_iot_client_t *client)
     tuya_mqtt_protocol_register(&client->mqctx, PRO_UPGD_REQ, mqtt_service_upgrade_notify_on, client);
     tuya_mqtt_protocol_register(&client->mqctx, PRO_MQ_DPCACHE_NOTIFY, mqtt_atop_dp_cache_notify_cb, client);
     tuya_mqtt_protocol_register(&client->mqctx, PRO_RTC_REQ, mqtt_rtc_req_notify_cb, client);
-    
+
     return rt;
 }
 

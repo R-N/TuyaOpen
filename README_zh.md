@@ -3,13 +3,16 @@
 </p>
 
 <p align="center">
-  <a href="https://tuyaopen.ai/zh/docs/quick_start/enviroment-setup">快速开始</a> ·
+  <a href="https://tuyaopen.ai/zh/docs/quick-start/enviroment-setup">快速开始</a> ·
   <a href="https://developer.tuya.com/cn/docs/iot/ai-agent-management?id=Kdxr4v7uv4fud">涂鸦 AI Agent</a> ·
   <a href="https://tuyaopen.ai/zh/docs/about-tuyaopen">文档中心</a> ·
   <a href="https://tuyaopen.ai/zh/docs/hardware-specific/t5-ai-board/overview-t5-ai-board">硬件资源</a>
 </p>
 
 <p align="center">
+    <a href="https://github.com/tuya/TuyaOpen/actions/workflows/check-build-apps.yml" target="_blank">
+        <img src="https://github.com/tuya/TuyaOpen/actions/workflows/check-build-apps.yml/badge.svg"
+            alt="TuyaOpen Check Build"></a>
     <a href="https://tuyaopen.ai" target="_blank">
         <img alt="Static Badge" src="https://img.shields.io/badge/Product-F04438"></a>
     <a href="https://tuyaopen.ai/zh/pricing" target="_blank">
@@ -104,3 +107,4 @@ TuyaOpen 赋能下一代 AI 智能体硬件：以灵活跨平台 C/C++ SDK 支�
 
 - Arduino for TuyaOpen: [https://github.com/tuya/arduino-TuyaOpen](https://github.com/tuya/arduino-TuyaOpen)
 - Luanode for TuyaOpen：[https://github.com/tuya/luanode-TuyaOpen](https://github.com/tuya/luanode-TuyaOpen)
+- **TuyaOpen Dev Skills**（Cursor AI 开发技能：环境、编译、烧录、设备授权等）：[github.com/tuya/TuyaOpen-dev-skills](https://github.com/tuya/TuyaOpen-dev-skills) — 可在 Cursor 中以 Remote Rule 导入或克隆仓库：`https://github.com/tuya/TuyaOpen-dev-skills.git`

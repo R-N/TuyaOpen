@@ -3,6 +3,9 @@ __pycache__
 .tags
 .env.json
 .cache
+.clangd
+.cursor
+.target_logging
 
 CMakeCache.txt
 /CMakeFiles
@@ -27,3 +30,4 @@ dist
 /.set_example
 /dist
 *monitor.log
+
