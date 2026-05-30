@@ -10,10 +10,14 @@
 
 #include "tal_api.h"
 
+#if defined(CONFIG_ENABLE_ESP_DISPLAY)
 #include "lcd_st7789_spi.h"
+#endif
 #include "board_com_api.h"
 
+#if defined(CONFIG_ENABLE_ESP_DISPLAY)
 #include "xl9555.h"
+#endif
 
 /***********************************************************
 ************************macro define************************
@@ -89,6 +93,7 @@ OPERATE_RET board_register_hardware(void)
     return rt;
 }
 
+#if defined(CONFIG_ENABLE_ESP_DISPLAY)
 int board_display_init(void)
 {
     return lcd_st7789_spi_init();
@@ -103,3 +108,4 @@ void *board_display_get_panel_handle(void)
 {
     return lcd_st7789_spi_get_panel_handle();
 }
+#endif
