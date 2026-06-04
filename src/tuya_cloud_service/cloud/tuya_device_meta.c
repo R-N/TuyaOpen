@@ -1,6 +1,6 @@
 /**
  * @file tuya_device_meta.c
- * @brief tuya_device_meta module is used to 
+ * @brief tuya_device_meta module is used to
  * @version 0.1
  * @copyright Copyright (c) 2021-2026 Tuya Inc. All Rights Reserved.
  */
@@ -22,13 +22,13 @@
 /***********************************************************
 ************************macro define************************
 ***********************************************************/
-#define DEVICE_META_SAVE_API    "tuya.device.meta.save"
+#define DEVICE_META_SAVE_API "tuya.device.meta.save"
 
 /***********************************************************
 ***********************typedef define***********************
 ***********************************************************/
 typedef struct {
-    cJSON *json;
+    cJSON       *json;
     MUTEX_HANDLE mutex;
 
     DELAYED_WORK_HANDLE delayed_work;
@@ -37,7 +37,6 @@ typedef struct {
 /***********************************************************
 ********************function declaration********************
 ***********************************************************/
-
 
 /***********************************************************
 ***********************variable define**********************
@@ -57,21 +56,20 @@ static void __device_meta_event_workq(void *data)
     rt = tuya_device_meta_add_number("timerCapability", 1);
     if (OPRT_OK != rt) {
         PR_ERR("add timerCapability failed:%d", rt);
-        return;
+    } else {
+        rt = tuya_device_meta_report();
+        if (OPRT_OK != rt) {
+            PR_ERR("report meta failed:%d", rt);
+        } else {
+            PR_DEBUG("device meta report success");
+            tal_event_publish(EVENT_DEVICE_META_REPORT, NULL);
+            PR_DEBUG("device meta report success, event publish");
+        }
     }
 
-    rt = tuya_device_meta_report();
-    if (OPRT_OK != rt) {
-        PR_ERR("report meta failed:%d", rt);
-        return;
-    }
-
-    PR_DEBUG("device meta report success");
-
-    tal_event_publish(EVENT_DEVICE_META_REPORT, NULL);
-
-    PR_DEBUG("device meta report success, event publish");
-
+    // Why: meta is non-critical (timerCapability flag); retrying every 5s on
+    //   failure fragments mbedtls heap until live MQTT TLS context dies and
+    //   DP reports stop reaching the cloud. One-shot is safer than starving.
     tal_workq_cancel_delayed(s_meta.delayed_work);
     s_meta.delayed_work = NULL;
 }
@@ -89,7 +87,7 @@ static int __device_meta_event_cb(void *data)
         PR_ERR("init delayed work failed:%d", rt);
         return -1;
     }
-    rt = tal_workq_start_delayed(s_meta.delayed_work, 5*1000, LOOP_CYCLE);
+    rt = tal_workq_start_delayed(s_meta.delayed_work, 5 * 1000, LOOP_CYCLE);
     if (OPRT_OK != rt) {
         PR_ERR("start delayed work failed:%d", rt);
         return -1;
@@ -112,8 +110,7 @@ OPERATE_RET tuya_device_meta_init(void)
         return rt;
     }
 
-    tal_event_subscribe(EVENT_TIME_SYNC, "tuya_device_meta", __device_meta_event_cb,
-        SUBSCRIBE_TYPE_ONETIME);
+    tal_event_subscribe(EVENT_TIME_SYNC, "tuya_device_meta", __device_meta_event_cb, SUBSCRIBE_TYPE_ONETIME);
 
     return OPRT_OK;
 }
@@ -167,8 +164,8 @@ OPERATE_RET tuya_device_meta_add_string(const char *key, const char *value)
 
     cJSON *existing = cJSON_GetObjectItem(metas, key);
     if (existing != NULL) {
-        PR_WARN("replace meta key:%s value:%s -> %s", key,
-                existing->valuestring != NULL ? existing->valuestring : "", value);
+        PR_WARN("replace meta key:%s value:%s -> %s", key, existing->valuestring != NULL ? existing->valuestring : "",
+                value);
         cJSON *new_val = cJSON_CreateString(value);
         if (new_val == NULL) {
             rt = OPRT_MALLOC_FAILED;
@@ -227,8 +224,7 @@ OPERATE_RET tuya_device_meta_add_number(const char *key, int value)
 
     cJSON *existing = cJSON_GetObjectItem(metas, key);
     if (existing != NULL) {
-        PR_WARN("replace meta key:%s value:%d -> %d", key,
-                (int)existing->valuedouble, value);
+        PR_WARN("replace meta key:%s value:%d -> %d", key, (int)existing->valuedouble, value);
         cJSON *new_val = cJSON_CreateNumber((double)value);
         if (new_val == NULL) {
             rt = OPRT_MALLOC_FAILED;
@@ -255,13 +251,13 @@ __EXIT:
 
 OPERATE_RET tuya_device_meta_report(void)
 {
-    OPERATE_RET rt = OPRT_OK;
-    tuya_iot_client_t *client = NULL;
-    char *buffer = NULL;
-    cJSON *local_json = NULL;
-    atop_base_request_t atop_request = {0};
-    atop_base_response_t response = {0};
-    bool response_used = false;
+    OPERATE_RET          rt            = OPRT_OK;
+    tuya_iot_client_t   *client        = NULL;
+    char                *buffer        = NULL;
+    cJSON               *local_json    = NULL;
+    atop_base_request_t  atop_request  = {0};
+    atop_base_response_t response      = {0};
+    bool                 response_used = false;
 
     if (s_meta.mutex == NULL || s_meta.json == NULL) {
         return OPRT_INVALID_PARM;
@@ -271,7 +267,7 @@ OPERATE_RET tuya_device_meta_report(void)
 
     /* 1. Build payload: update timestamp and serialize */
     TIME_T timestamp = tal_time_get_posix();
-    cJSON *new_time = cJSON_CreateNumber((double)timestamp);
+    cJSON *new_time  = cJSON_CreateNumber((double)timestamp);
     if (new_time == NULL) {
         rt = OPRT_MALLOC_FAILED;
         goto __EXIT;
@@ -291,24 +287,24 @@ OPERATE_RET tuya_device_meta_report(void)
         goto __EXIT;
     }
 
-    atop_request.devid = client->activate.devid;
-    atop_request.key = client->activate.seckey;
-    atop_request.path = "/d.json";
+    atop_request.devid     = client->activate.devid;
+    atop_request.key       = client->activate.seckey;
+    atop_request.path      = "/d.json";
     atop_request.timestamp = (uint32_t)timestamp;
-    atop_request.api = DEVICE_META_SAVE_API;
-    atop_request.version = "1.0";
-    atop_request.data = buffer;
-    atop_request.datalen = strlen(buffer);
+    atop_request.api       = DEVICE_META_SAVE_API;
+    atop_request.version   = "1.0";
+    atop_request.data      = buffer;
+    atop_request.datalen   = strlen(buffer);
     atop_request.user_data = NULL;
 
     /* Transfer json to local variable before unlocking, so concurrent
      * tuya_device_meta_add calls create a fresh json and are not lost. */
-    local_json = s_meta.json;
+    local_json  = s_meta.json;
     s_meta.json = NULL;
 
     /* 2. Send request (blocking) */
     response_used = true;
-    rt = atop_base_request(&atop_request, &response);
+    rt            = atop_base_request(&atop_request, &response);
     tal_free(buffer);
     buffer = NULL;
 
