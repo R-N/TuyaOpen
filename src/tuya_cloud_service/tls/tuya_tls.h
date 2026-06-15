@@ -64,31 +64,31 @@ typedef void (*tuya_tls_event_cb)(tuya_tls_event_t event, void *p_args);
 
 typedef struct {
     tuya_tls_mode_t mode;
-    char *hostname;
-    uint16_t port;
-    uint32_t timeout;
+    char           *hostname;
+    uint16_t        port;
+    uint32_t        timeout;
 
-    char *psk_key;
+    char    *psk_key;
     uint32_t psk_key_size;
-    char *psk_id;
-    int psk_id_size;
+    char    *psk_id;
+    int      psk_id_size;
 
-    bool verify;
+    bool  verify;
     char *ca_cert;
-    int ca_cert_size;
+    int   ca_cert_size;
 
     char *client_cert;
-    int client_cert_size;
+    int   client_cert_size;
     char *client_pkey;
-    int client_pkey_size;
+    int   client_pkey_size;
 
     size_t in_content_len;
     size_t out_content_len;
 
-    tuya_tls_send_cb f_send;
-    tuya_tls_recv_cb f_recv;
+    tuya_tls_send_cb  f_send;
+    tuya_tls_recv_cb  f_recv;
     tuya_tls_event_cb exception_cb;
-    void *user_data;
+    void             *user_data;
 } tuya_tls_config_t;
 
 /**
@@ -119,6 +119,11 @@ int tuya_tls_register_x509_crt_der(void *p_ctx, uint8_t *p_der, uint32_t der_len
  * @param[in] pre_conn callback
  */
 void tuya_tls_register_pre_conn_cb(tuya_tls_pre_conn_cb pre_conn);
+
+/**
+ * @brief set CA cert parse cache TTL in milliseconds (0 disables caching)
+ */
+void tuya_tls_set_cacert_cache_ttl_ms(uint32_t ttl_ms);
 
 /**
  * @brief tls init
