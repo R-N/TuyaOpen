@@ -4,6 +4,7 @@
 
 import os
 import re
+import subprocess
 from git import Repo, Git
 from git import RemoteProgress
 from git.exc import GitCommandError
@@ -237,12 +238,32 @@ target: {target}")
 
 def git_get_commit(repo_path):
     logger = get_logger()
-    repo = Repo(repo_path)
-    if repo.bare:
+
+    safe_path = os.path.realpath(repo_path)
+    cmd = ["git", "-c", f"safe.directory={safe_path}", "-C", repo_path]
+    result = subprocess.run(
+        cmd + ["rev-parse", "--is-bare-repository"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    if result.returncode != 0:
+        logger.error(result.stderr.strip())
+        return ""
+    if result.stdout.strip() == "true":
         logger.error(f"[{repo_path}] is bare repository.")
         return ""
 
-    return repo.head.commit.hexsha
+    result = subprocess.run(
+        cmd + ["rev-parse", "HEAD"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    if result.returncode != 0:
+        logger.error(result.stderr.strip())
+        return ""
+    return result.stdout.strip()
 
 
 def download_submoudules(repo_path):
@@ -263,7 +284,8 @@ def download_submoudules(repo_path):
         return True
 
     logger.info("Downloading submoudules ...")
-    cmd = f"cd {repo_path} && git submodule update --init"
+    submodule_paths = " ".join(f'"{submodule.path}"' for submodule in submodules)
+    cmd = f'git -C "{repo_path}" submodule update --init {submodule_paths}'
     if 0 != do_subprocess(cmd):
         logger.error("Download submoudules failed.")
         return False
